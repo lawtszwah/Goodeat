@@ -1,17 +1,20 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { MEAL_TYPES, mealType } from '../useCloud'
+import { MEAL_TYPES, mealType, uploadFoodPhoto } from '../useCloud'
 import Avatar from '../components/Avatar'
+import FoodPhoto from '../components/FoodPhoto'
 
-const blankWish = () => ({ kind: 'wish', id: null, name: '', shop: '', type: 'takeout', reason: '', price: 20 })
-const blankEaten = () => ({ kind: 'eaten', name: '', shop: '', type: 'takeout', reason: '', price: 20 })
+const blankWish = () => ({ kind: 'wish', id: null, name: '', shop: '', type: 'takeout', reason: '', price: 20, image_url: null, photoFile: null })
+const blankEaten = () => ({ kind: 'eaten', name: '', shop: '', type: 'takeout', reason: '', price: 20, image_url: null, photoFile: null })
 
 const dateOf = (row) => (row.created_at ? row.created_at.slice(0, 10) : '')
 
-export default function Wishes({ wishes, memberMap, api, cur, celebrate }) {
+export default function Wishes({ wishes, memberMap, api, cur, celebrate, hid, me }) {
   const [form, setForm] = useState(null)
   const [eating, setEating] = useState(null) // 正在记一笔的想吃项 + 这次开销
   const [picked, setPicked] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   const todo = wishes.filter((w) => !w.eaten)
   const eaten = wishes.filter((w) => w.eaten)
@@ -25,25 +28,38 @@ export default function Wishes({ wishes, memberMap, api, cur, celebrate }) {
 
   // 想吃清单：吃一次 → 先填这次开销，再记入吃过 + 记账，清单里这条保留
   const startEat = (w) => setEating({ ...w, price: Number(w.price) || 0 })
-  const confirmEat = () => {
+  const confirmEat = async () => {
+    if (saving) return
+    setSaving(true)
     const price = Number(eating.price) || 0
-    api.logEaten({ name: eating.name, shop: eating.shop, type: eating.type, reason: eating.reason, price })
-    celebrate(`${mealType(eating.type).icon} 记一笔 ${cur}${price}`)
-    setEating(null)
+    const saved = await api.logEaten({ name: eating.name, shop: eating.shop, type: eating.type, reason: eating.reason, price, image_url: eating.image_url })
+    if (saved) {
+      if (saved === true) celebrate(`${mealType(eating.type).icon} 记一笔 ${cur}${price}`)
+      setEating(null)
+    }
+    setSaving(false)
   }
 
-  const save = () => {
-    if (!form.name.trim()) return
-    const fields = { name: form.name.trim(), shop: form.shop, type: form.type, reason: form.reason, price: Number(form.price) || 0 }
-    if (form.kind === 'eaten') {
-      api.logEaten(fields)
-      celebrate(`${mealType(fields.type).icon} 记一笔 ${cur}${fields.price}`)
-    } else if (form.id) {
-      api.updateWish(form.id, fields)
-    } else {
-      api.addWish(fields)
+  const save = async () => {
+    if (!form.name.trim() || saving) return
+    setSaving(true)
+    setError('')
+    try {
+      const imageUrl = form.photoFile ? await uploadFoodPhoto(hid, me.id, form.photoFile) : form.image_url || null
+      const fields = { name: form.name.trim(), shop: form.shop, type: form.type, reason: form.reason, price: Number(form.price) || 0, image_url: imageUrl }
+      let saved
+      if (form.kind === 'eaten') saved = await api.logEaten(fields)
+      else if (form.id) saved = await api.updateWish(form.id, fields)
+      else saved = await api.addWish(fields)
+      if (saved) {
+        if (form.kind === 'eaten' && saved === true) celebrate(`${mealType(fields.type).icon} 记一笔 ${cur}${fields.price}`)
+        setForm(null)
+      }
+    } catch (err) {
+      setError('照片上传失败：' + err.message)
+    } finally {
+      setSaving(false)
     }
-    setForm(null)
   }
 
   return (
@@ -68,7 +84,8 @@ export default function Wishes({ wishes, memberMap, api, cur, celebrate }) {
           return (
             <li key={w.id} className={`glass-card p-4 transition ${picked === w.id ? 'ring-2 ring-pink-400' : ''}`}>
               <div className="flex items-start justify-between">
-                <div className="flex-1">
+                {w.image_url && <img src={w.image_url} alt="" className="mr-3 h-16 w-16 shrink-0 rounded-xl object-cover" />}
+                <div className="min-w-0 flex-1">
                   <div className="font-bold text-gray-800">
                     {w.name}
                     {picked === w.id && <span className="ml-2 text-xs text-pink-500">← 今天就它！</span>}
@@ -82,7 +99,7 @@ export default function Wishes({ wishes, memberMap, api, cur, celebrate }) {
                     {memberMap[w.created_by]?.display_name} 加的
                   </div>
                 </div>
-                <button onClick={() => setForm({ kind: 'wish', ...w, price: Number(w.price) })} className="px-2 text-gray-300">✎</button>
+                <button onClick={() => { setError(''); setForm({ kind: 'wish', ...w, photoFile: null, price: Number(w.price) }) }} className="px-2 text-gray-300">✎</button>
               </div>
               <div className="mt-3 flex gap-2">
                 <button onClick={() => startEat(w)} className="primary-button flex-1 py-2 text-sm font-bold active:scale-95">
@@ -115,7 +132,8 @@ export default function Wishes({ wishes, memberMap, api, cur, celebrate }) {
               return (
                 <li key={w.id} className="glass-card px-4 py-3">
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                    {w.image_url && <img src={w.image_url} alt="" className="mr-3 h-12 w-12 shrink-0 rounded-xl object-cover" />}
+                    <div className="min-w-0 flex-1">
                       <div className="text-sm font-medium text-gray-700">{w.name}</div>
                       <div className="mt-0.5 text-xs text-gray-400">
                         {t.icon} {t.label} · {dateOf(w)} {w.price ? `· ${cur}${w.price}` : ''}
@@ -131,7 +149,7 @@ export default function Wishes({ wishes, memberMap, api, cur, celebrate }) {
                     <div className="flex flex-col items-end gap-2">
                       <button onClick={() => api.delWish(w.id)} className="text-gray-300 active:text-red-400">✕</button>
                       <button
-                        onClick={() => api.addWish({ name: w.name, shop: w.shop, type: w.type, reason: w.reason, price: Number(w.price) || 0 })}
+                        onClick={() => api.addWish({ name: w.name, shop: w.shop, type: w.type, reason: w.reason, price: Number(w.price) || 0, image_url: w.image_url || null })}
                         className="whitespace-nowrap text-xs text-orange-400"
                       >
                         想再吃
@@ -147,7 +165,7 @@ export default function Wishes({ wishes, memberMap, api, cur, celebrate }) {
 
       {/* 这次吃了多少钱 */}
       {eating && createPortal(
-        <div className="sheet-backdrop fixed inset-0 z-30 flex items-end justify-center" onClick={() => setEating(null)}>
+        <div className="sheet-backdrop fixed inset-0 z-30 flex items-end justify-center" onClick={() => { if (!saving) setEating(null) }}>
           <div className="glass-sheet animate-pop w-full max-w-md p-5 pb-8" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-center text-base font-bold text-gray-800">
               {mealType(eating.type).icon} {eating.name}
@@ -163,8 +181,8 @@ export default function Wishes({ wishes, memberMap, api, cur, celebrate }) {
                 className="w-32 rounded-xl border border-gray-200 px-4 py-3 text-center text-2xl font-bold outline-none focus:border-orange-400"
               />
             </div>
-            <button onClick={confirmEat} className="primary-button w-full py-3 font-bold active:scale-[0.98]">
-              记入吃过
+            <button onClick={confirmEat} disabled={saving} className="primary-button w-full py-3 font-bold active:scale-[0.98] disabled:opacity-50">
+              {saving ? '保存中…' : '记入吃过'}
             </button>
           </div>
         </div>,
@@ -173,7 +191,7 @@ export default function Wishes({ wishes, memberMap, api, cur, celebrate }) {
 
       {/* 添加/编辑弹窗 */}
       {form && createPortal(
-        <div className="sheet-backdrop fixed inset-0 z-30 flex items-end justify-center" onClick={() => setForm(null)}>
+        <div className="sheet-backdrop fixed inset-0 z-30 flex items-end justify-center" onClick={() => { if (!saving) setForm(null) }}>
           <div className="glass-sheet animate-pop w-full max-w-md p-5 pb-8" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-4 text-center text-base font-bold text-gray-800">
               {form.kind === 'eaten' ? '记一笔吃过的' : form.id ? '改一下' : '想吃点什么？'}
@@ -199,8 +217,14 @@ export default function Wishes({ wishes, memberMap, api, cur, celebrate }) {
             <input
               value={form.shop}
               onChange={(e) => setForm({ ...form, shop: e.target.value })}
-              placeholder="哪家店 / 哪道菜（可不填）"
+              placeholder="哪家餐厅 / 哪道菜（可不填）"
               className="mb-3 w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-orange-400"
+            />
+            <FoodPhoto
+              label="餐厅或美食照片"
+              imageUrl={form.image_url}
+              file={form.photoFile}
+              onChange={({ file, imageUrl }) => setForm({ ...form, photoFile: file, image_url: imageUrl })}
             />
             <input
               value={form.reason}
@@ -217,8 +241,9 @@ export default function Wishes({ wishes, memberMap, api, cur, celebrate }) {
                 className="w-24 rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-orange-400"
               />
             </div>
-            <button onClick={save} className="primary-button w-full py-3 font-bold active:scale-[0.98]">
-              {form.kind === 'eaten' ? '记入吃过' : '保存'}
+            {error && <p className="mb-3 text-sm text-red-500" role="alert">{error}</p>}
+            <button onClick={save} disabled={saving} className="primary-button w-full py-3 font-bold active:scale-[0.98] disabled:opacity-50">
+              {saving ? '保存中…' : form.kind === 'eaten' ? '记入吃过' : '保存'}
             </button>
           </div>
         </div>,

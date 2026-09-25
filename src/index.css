@@ -44,7 +44,7 @@ button:focus-visible, input:focus-visible { outline: 3px solid rgba(215,95,90,.4
 .glass-row { border: 1px solid rgba(255,255,255,.69); border-radius: 16px; background: rgba(255,255,255,.38); box-shadow: inset 0 1px rgba(255,255,255,.75); }
 .dish-card { min-height: 112px; padding-top: 19px; transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s ease; }
 .dish-card:active { box-shadow: 0 3px 12px rgba(112,81,89,.11); }
-.dish-card span:nth-child(2) { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dish-card .dish-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .add-card { min-height: 112px; border: 1.5px dashed rgba(206,127,124,.5); border-radius: 25px; background: rgba(255,255,255,.19); color: #be7776; -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
 .add-card:active { background: rgba(255,255,255,.5); }
 .primary-button, .hero-button { position: relative; border: 1px solid rgba(255,255,255,.52); border-radius: 16px; background: linear-gradient(135deg,#eb9184,#d86b70 58%,#cc687b); color: #fff; box-shadow: 0 9px 18px rgba(203,99,108,.24), inset 0 1px 1px rgba(255,255,255,.55); text-shadow: 0 1px 1px rgba(120,50,62,.17); transition: transform .2s ease, filter .2s ease; }

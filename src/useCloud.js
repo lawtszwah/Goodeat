@@ -104,16 +104,20 @@ export function useCloud(session) {
 
     // 记一次「吃过」：新增一条吃过记录(eaten=true) + 记一笔账，原想吃项保持不动
     logEaten: async (f) => {
-      await supabase.from('wishes').insert({
+      const { error } = await supabase.from('wishes').insert({
         household_id: hid, created_by: userId, eaten: true,
         name: f.name, shop: f.shop || null, type: f.type || 'takeout',
         reason: f.reason || null, price: Number(f.price) || 0, rating: f.rating || 0,
+        image_url: f.image_url || null,
       })
-      await supabase.from('ledger').insert({
+      if (error) { alert('出错了：' + error.message); return false }
+      const { error: ledgerError } = await supabase.from('ledger').insert({
         household_id: hid, created_by: userId, date: todayStr(),
         type: f.type || 'takeout', title: `${f.name}${f.shop ? '·' + f.shop : ''}`, amount: Number(f.price) || 0,
       })
       if (hid) await loadAll(hid)
+      if (ledgerError) { alert('吃过记录已保存，但记账失败：' + ledgerError.message); return 'partial' }
+      return true
     },
 
     // 账本
@@ -138,6 +142,24 @@ export async function uploadAvatar(userId, file) {
   const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
   if (error) throw error
   const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+  return data.publicUrl
+}
+
+const FOOD_PHOTO_TYPES = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+}
+
+export async function uploadFoodPhoto(householdId, userId, file) {
+  const ext = FOOD_PHOTO_TYPES[file.type]
+  if (!ext) throw new Error('请选择 JPG、PNG、WebP 或 GIF 图片')
+  if (file.size > 5 * 1024 * 1024) throw new Error('照片不能超过 5 MB')
+  const path = `${householdId}/${userId}/${crypto.randomUUID()}.${ext}`
+  const { error } = await supabase.storage.from('food-photos').upload(path, file, { contentType: file.type })
+  if (error) throw error
+  const { data } = supabase.storage.from('food-photos').getPublicUrl(path)
   return data.publicUrl
 }
 
