@@ -151,7 +151,7 @@ export function KitchenShell({ session, cloud }) {
         <div className="flex items-center justify-between gap-3 px-5 pb-3 pt-4">
           <div>
             <div className="app-eyebrow">OUR LITTLE KITCHEN</div>
-            <h1 className="app-title">我们的厨房<span aria-hidden="true"> ✳</span></h1>
+            <h1 className="app-title">我们的厨房</h1>
           </div>
           <button onClick={() => setSettings(true)} className="profile-trigger" aria-label="打开我的资料">
             <Avatar profile={cloud.profile} size={28} />

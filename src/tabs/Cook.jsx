@@ -10,12 +10,15 @@ const blank = () => ({ id: null, name: '', emoji: '🍽️', image_url: null, ph
 
 export default function Cook({ dishes, today, memberMap, api, cur, celebrate, hid, me }) {
   const [manage, setManage] = useState(false)
+  const [search, setSearch] = useState('')
   const [form, setForm] = useState(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   const dishById = (id) => dishes.find((d) => d.id === id)
   const total = today.reduce((s, t) => s + Number(dishById(t.dish_id)?.cost || 0), 0)
+  const keyword = search.trim().toLocaleLowerCase()
+  const visibleDishes = keyword ? dishes.filter((d) => d.name.toLocaleLowerCase().includes(keyword)) : dishes
 
   const addToToday = (dish) => {
     api.addToday(dish.id)
@@ -81,17 +84,36 @@ export default function Cook({ dishes, today, memberMap, api, cur, celebrate, hi
         </section>
       )}
 
-      {/* 菜库 */}
+      {/* 家常菜 */}
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <div><div className="section-eyebrow">DISCOVER & PICK</div><h2 className="section-title">家常菜库</h2></div>
+          <div><div className="section-eyebrow">DISCOVER & PICK</div><h2 className="section-title">家常菜</h2></div>
           <button onClick={() => setManage((m) => !m)} className="text-sm font-semibold accent-text">
             {manage ? '完成' : '管理'}
           </button>
         </div>
 
+        <div className="dish-search mb-3">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-4-4" />
+          </svg>
+          <input
+            type="search"
+            aria-label="搜索家常菜"
+            placeholder="搜索菜名"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {search && <button type="button" onClick={() => setSearch('')} aria-label="清空搜索">✕</button>}
+        </div>
+
+        {keyword && visibleDishes.length === 0 && (
+          <p className="dish-search-empty" role="status">没有找到相关菜品</p>
+        )}
+
         <div className="grid grid-cols-3 gap-3">
-          {dishes.map((d) => (
+          {visibleDishes.map((d) => (
             <div key={d.id} className="relative">
               <button
                 onClick={() => (manage ? (setError(''), setForm({ ...d, photoFile: null, cost: Number(d.cost) })) : addToToday(d))}
