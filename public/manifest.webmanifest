@@ -1,0 +1,17 @@
+{
+  "name": "我们的厨房",
+  "short_name": "厨房",
+  "description": "在家点菜 · 想吃清单 · 记账，两个人的小厨房",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff7f3",
+  "theme_color": "#ff7a59",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
