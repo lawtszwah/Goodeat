@@ -7,6 +7,16 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="我们的厨房" />
     <meta name="theme-color" content="#f7edf0" />
+    <script>
+      let savedTheme
+      try {
+        savedTheme = localStorage.getItem('kitchen-theme')
+      } catch {}
+      const dark = savedTheme === 'dark' || (savedTheme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches)
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+      document.querySelector('meta[name="theme-color"]').content = dark ? '#171923' : '#f7edf0'
+      document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').content = dark ? 'black-translucent' : 'default'
+    </script>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/icon.svg" />
     <title>我们的厨房 🍳</title>

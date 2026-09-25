@@ -3,7 +3,7 @@ import { supabase } from './supabase'
 import { uploadAvatar, CURRENCIES } from './useCloud'
 import Avatar from './components/Avatar'
 
-export default function ProfileSheet({ session, profile, home, currency, setCurrency, api, onClose }) {
+export default function ProfileSheet({ session, profile, home, currency, setCurrency, themePreference, setThemePreference, api, onClose }) {
   const [name, setName] = useState(profile?.display_name || '')
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || null)
   const [busy, setBusy] = useState(false)
@@ -80,6 +80,25 @@ export default function ProfileSheet({ session, profile, home, currency, setCurr
               className={`flex-1 rounded-xl py-2.5 text-sm ${currency === codeKey ? 'bg-orange-100 font-bold text-orange-600 ring-2 ring-orange-400' : 'bg-gray-50 text-gray-500'}`}
             >
               {sym} {codeKey}
+            </button>
+          ))}
+        </div>
+
+        <div className="mb-2 text-sm font-medium text-gray-600">外观</div>
+        <div className="theme-options mb-6" role="group" aria-label="外观模式">
+          {[
+            ['system', '跟随系统'],
+            ['light', '浅色'],
+            ['dark', '深色'],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              className={`theme-option ${themePreference === value ? 'is-active' : ''}`}
+              aria-pressed={themePreference === value}
+              onClick={() => setThemePreference(value)}
+            >
+              {label}
             </button>
           ))}
         </div>

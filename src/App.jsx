@@ -5,6 +5,7 @@ import Auth from './Auth'
 import Onboarding from './Onboarding'
 import ProfileSheet from './ProfileSheet'
 import Avatar from './components/Avatar'
+import useTheme from './useTheme'
 import Cook from './tabs/Cook'
 import Wishes from './tabs/Wishes'
 import Ledger from './tabs/Ledger'
@@ -16,6 +17,7 @@ const TABS = [
 ]
 
 export default function App() {
+  const [themePreference, setThemePreference] = useTheme()
   const [session, setSession] = useState(undefined) // undefined=未知, null=未登录
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function App() {
 
   return (
     <div className="app-frame mx-auto h-full max-w-md">
-      {session ? <Shell session={session} /> : <Auth />}
+      {session ? <Shell session={session} themePreference={themePreference} setThemePreference={setThemePreference} /> : <Auth />}
     </div>
   )
 }
@@ -39,14 +41,14 @@ function Center({ children }) {
   return <div className="flex h-full items-center justify-center text-gray-400">{children}</div>
 }
 
-function Shell({ session }) {
+function Shell({ session, themePreference, setThemePreference }) {
   const cloud = useCloud(session)
   if (cloud.loading) return <Center>🍳 加载中…</Center>
   if (cloud.needOnboard) return <Onboarding session={session} onDone={cloud.refresh} />
-  return <KitchenShell session={session} cloud={cloud} />
+  return <KitchenShell session={session} cloud={cloud} themePreference={themePreference} setThemePreference={setThemePreference} />
 }
 
-export function KitchenShell({ session, cloud }) {
+export function KitchenShell({ session, cloud, themePreference, setThemePreference }) {
   const [tab, setTab] = useState('cook')
   const tabIndexRef = useRef(0)
   const trackRef = useRef(null)
@@ -219,6 +221,8 @@ export function KitchenShell({ session, cloud }) {
           home={cloud.home}
           currency={currency}
           setCurrency={setCurrency}
+          themePreference={themePreference}
+          setThemePreference={setThemePreference}
           api={cloud.api}
           onClose={() => setSettings(false)}
         />
