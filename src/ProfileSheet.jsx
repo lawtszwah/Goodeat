@@ -39,8 +39,8 @@ export default function ProfileSheet({ session, profile, home, currency, setCurr
   }
 
   return (
-    <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/30" onClick={onClose}>
-      <div className="animate-pop max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-5 pb-8" onClick={(e) => e.stopPropagation()}>
+    <div className="sheet-backdrop fixed inset-0 z-30 flex items-end justify-center" onClick={onClose}>
+      <div className="glass-sheet animate-pop max-h-[90vh] w-full max-w-md overflow-y-auto p-5 pb-8" onClick={(e) => e.stopPropagation()}>
         <h3 className="mb-5 text-center text-base font-bold text-gray-800">我的资料</h3>
 
         {/* 头像 + 名字 */}
@@ -64,7 +64,7 @@ export default function ProfileSheet({ session, profile, home, currency, setCurr
         <div className="mb-2 text-sm font-medium text-gray-600">邀请码（发给对方一起用）</div>
         <button
           onClick={copyCode}
-          className="mb-5 flex w-full items-center justify-between rounded-xl bg-orange-50 px-4 py-3 active:scale-[0.99]"
+          className="glass-row mb-5 flex w-full items-center justify-between px-4 py-3 active:scale-[0.99]"
         >
           <span className="font-mono text-lg font-bold tracking-widest text-orange-600">{home?.invite_code || '—'}</span>
           <span className="text-sm text-orange-500">{copied ? '已复制 ✓' : '点击复制'}</span>
@@ -84,7 +84,7 @@ export default function ProfileSheet({ session, profile, home, currency, setCurr
           ))}
         </div>
 
-        <button onClick={onClose} className="mb-2 w-full rounded-xl bg-orange-500 py-3 font-bold text-white active:scale-[0.98]">
+        <button onClick={onClose} className="primary-button mb-2 w-full py-3 font-bold active:scale-[0.98]">
           完成
         </button>
         <button onClick={() => supabase.auth.signOut()} className="w-full py-2 text-center text-sm text-gray-400">

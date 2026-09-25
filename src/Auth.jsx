@@ -23,14 +23,15 @@ export default function Auth() {
   }
 
   return (
-    <div className="flex min-h-full flex-col items-center justify-center px-8">
+    <div className="auth-page flex min-h-full flex-col items-center justify-center px-6">
+      <div className="auth-emblem mb-6">🍳</div>
       <div className="mb-8 text-center">
-        <div className="text-6xl">🍳</div>
-        <h1 className="mt-3 text-2xl font-bold text-orange-600">我们的厨房</h1>
-        <p className="mt-1 text-sm text-gray-400">两个人的点餐 · 想吃 · 记账</p>
+        <div className="app-eyebrow">OUR LITTLE KITCHEN</div>
+        <h1 className="app-title mt-2">我们的厨房</h1>
+        <p className="mt-2 text-sm text-slate-500">两个人的点餐 · 想吃 · 记账</p>
       </div>
 
-      <form onSubmit={submit} className="w-full max-w-sm space-y-3">
+      <form onSubmit={submit} className="glass-card w-full max-w-sm space-y-3 p-5">
         <input
           type="email"
           value={email}
@@ -51,7 +52,7 @@ export default function Auth() {
         {err && <div className="text-sm text-red-500">{err}</div>}
         <button
           disabled={busy}
-          className="w-full rounded-xl bg-orange-500 py-3 font-bold text-white active:scale-[0.98] disabled:opacity-50"
+          className="primary-button w-full py-3 font-bold active:scale-[0.98] disabled:opacity-50"
         >
           {busy ? '稍等…' : mode === 'login' ? '登录' : '注册'}
         </button>

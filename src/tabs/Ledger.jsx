@@ -21,24 +21,25 @@ export default function Ledger({ ledger, memberMap, api, cur }) {
   }, [ledger])
 
   return (
-    <div className="pt-2">
-      <section className="mb-5 rounded-2xl bg-gradient-to-br from-orange-500 to-pink-500 p-5 text-white shadow">
-        <div className="text-sm opacity-80">本月吃饭花了</div>
-        <div className="mt-1 text-4xl font-bold">{cur}{thisMonth.total}</div>
+    <div className="page-content pt-2">
+      <section className="glass-card ledger-summary mb-6 p-5">
+        <div className="section-eyebrow">THIS MONTH</div>
+        <div className="mt-1 text-sm text-slate-600">本月吃饭花了</div>
+        <div className="ledger-total mt-1 text-4xl font-bold">{cur}{thisMonth.total}</div>
         <div className="mt-4 grid grid-cols-3 gap-2 text-sm">
           {MEAL_TYPES.map((m) => (
-            <div key={m.key} className="rounded-xl bg-white/15 px-3 py-2">
-              <div className="opacity-80">{m.icon} {m.label}</div>
+            <div key={m.key} className="glass-row px-3 py-2">
+              <div className="text-slate-600">{m.icon} {m.label}</div>
               <div className="text-lg font-bold">{cur}{thisMonth.by[m.key] || 0}</div>
             </div>
           ))}
         </div>
-        <div className="mt-3 text-xs opacity-70">本月共 {thisMonth.count} 笔</div>
+        <div className="mt-3 text-xs text-slate-500">本月共 {thisMonth.count} 笔</div>
       </section>
 
-      <h2 className="mb-3 text-base font-bold text-gray-800">明细</h2>
+      <div className="mb-3"><div className="section-eyebrow">HISTORY</div><h2 className="section-title">明细</h2></div>
       {grouped.length === 0 ? (
-        <div className="rounded-2xl bg-white/60 py-12 text-center text-sm text-gray-400">
+        <div className="glass-card py-12 text-center text-sm text-gray-500">
           还没有记录～<br />去「点菜」吃完一顿，或在「想吃」里吃一个，就会自动记账 💰
         </div>
       ) : (
@@ -50,7 +51,7 @@ export default function Ledger({ ledger, memberMap, api, cur }) {
                 {rows.map((r) => {
                   const t = mealType(r.type)
                   return (
-                    <li key={r.id} className="flex items-center gap-3 rounded-xl bg-white px-4 py-3 shadow-sm">
+                    <li key={r.id} className="glass-card flex items-center gap-3 px-4 py-3">
                       <span className="text-xl">{t.icon}</span>
                       <div className="flex-1">
                         <div className="text-sm font-medium text-gray-800">{r.title}</div>

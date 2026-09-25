@@ -32,20 +32,20 @@ export default function Cook({ dishes, today, memberMap, api, cur, celebrate }) 
   }
 
   return (
-    <div className="pt-2">
+    <div className="page-content pt-2">
       {/* 今日菜单 */}
       {today.length > 0 && (
-        <section className="mb-5 rounded-2xl bg-white p-4 shadow-sm">
-          <h2 className="mb-3 flex items-center justify-between text-base font-bold text-gray-800">
+        <section className="glass-card featured-card mb-6 p-4">
+          <h2 className="mb-3 flex items-center justify-between text-base font-bold text-slate-800">
             <span>今日菜单 · {today.length} 道</span>
-            <span className="text-orange-500">{cur}{total}</span>
+            <span className="accent-text">{cur}{total}</span>
           </h2>
           <ul className="space-y-2">
             {today.map((t) => {
               const d = dishById(t.dish_id)
               if (!d) return null
               return (
-                <li key={t.id} className="flex items-center gap-3 rounded-xl bg-orange-50/60 px-3 py-2">
+                <li key={t.id} className="glass-row flex items-center gap-3 px-3 py-2">
                   <button onClick={() => api.toggleToday(t.id, !t.done)} className="text-2xl active:scale-90">
                     {t.done ? '✅' : d.emoji}
                   </button>
@@ -61,7 +61,7 @@ export default function Cook({ dishes, today, memberMap, api, cur, celebrate }) 
               )
             })}
           </ul>
-          <button onClick={finishMeal} className="mt-4 w-full rounded-xl bg-orange-500 py-3 font-bold text-white active:scale-[0.98]">
+          <button onClick={finishMeal} className="primary-button mt-4 w-full py-3 font-bold active:scale-[0.98]">
             🍽️ 这顿吃完啦（记一笔 {cur}{total}）
           </button>
         </section>
@@ -70,8 +70,8 @@ export default function Cook({ dishes, today, memberMap, api, cur, celebrate }) 
       {/* 菜库 */}
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-base font-bold text-gray-800">家常菜库</h2>
-          <button onClick={() => setManage((m) => !m)} className="text-sm font-medium text-orange-500">
+          <div><div className="section-eyebrow">DISCOVER & PICK</div><h2 className="section-title">家常菜库</h2></div>
+          <button onClick={() => setManage((m) => !m)} className="text-sm font-semibold accent-text">
             {manage ? '完成' : '管理'}
           </button>
         </div>
@@ -81,7 +81,7 @@ export default function Cook({ dishes, today, memberMap, api, cur, celebrate }) 
             <div key={d.id} className="relative">
               <button
                 onClick={() => (manage ? setForm({ ...d, cost: Number(d.cost) }) : addToToday(d))}
-                className="flex w-full flex-col items-center gap-1 rounded-2xl bg-white p-3 shadow-sm active:scale-95"
+                className="glass-card dish-card flex w-full flex-col items-center gap-1 p-3 active:scale-95"
               >
                 <span className="text-3xl">{d.emoji}</span>
                 <span className="text-sm font-medium text-gray-700">{d.name}</span>
@@ -99,7 +99,7 @@ export default function Cook({ dishes, today, memberMap, api, cur, celebrate }) 
 
           <button
             onClick={() => setForm(blank())}
-            className="flex flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-orange-200 p-3 text-orange-400 active:scale-95"
+            className="add-card flex flex-col items-center justify-center gap-1 p-3 active:scale-95"
           >
             <span className="text-2xl">＋</span>
             <span className="text-sm">加新菜</span>
@@ -109,8 +109,8 @@ export default function Cook({ dishes, today, memberMap, api, cur, celebrate }) 
 
       {/* 新增/编辑弹窗 */}
       {form && (
-        <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/30" onClick={() => setForm(null)}>
-          <div className="animate-pop w-full max-w-md rounded-t-3xl bg-white p-5 pb-8" onClick={(e) => e.stopPropagation()}>
+        <div className="sheet-backdrop fixed inset-0 z-30 flex items-end justify-center" onClick={() => setForm(null)}>
+          <div className="glass-sheet animate-pop w-full max-w-md p-5 pb-8" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-4 text-center text-base font-bold text-gray-800">这道菜叫…</h3>
             <input
               autoFocus
@@ -139,7 +139,7 @@ export default function Cook({ dishes, today, memberMap, api, cur, celebrate }) 
                 className="w-24 rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-orange-400"
               />
             </div>
-            <button onClick={saveDish} className="w-full rounded-xl bg-orange-500 py-3 font-bold text-white active:scale-[0.98]">保存</button>
+            <button onClick={saveDish} className="primary-button w-full py-3 font-bold active:scale-[0.98]">保存</button>
           </div>
         </div>
       )}

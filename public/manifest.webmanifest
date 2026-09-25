@@ -4,8 +4,8 @@
   "description": "在家点菜 · 想吃清单 · 记账，两个人的小厨房",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#fff7f3",
-  "theme_color": "#ff7a59",
+  "background_color": "#f7edf0",
+  "theme_color": "#f7edf0",
   "icons": [
     {
       "src": "/icon.svg",

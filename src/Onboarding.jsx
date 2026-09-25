@@ -40,7 +40,8 @@ export default function Onboarding({ session, onDone }) {
   }
 
   return (
-    <div className="flex min-h-full flex-col justify-center px-8 py-10">
+    <div className="onboarding-page flex min-h-full flex-col justify-center px-6 py-10">
+      <div className="glass-card p-5">
       <h1 className="mb-1 text-center text-xl font-bold text-orange-600">先建个小档案 👋</h1>
       <p className="mb-6 text-center text-sm text-gray-400">让对方知道是谁点的菜</p>
 
@@ -96,7 +97,7 @@ export default function Onboarding({ session, onDone }) {
       <button
         onClick={submit}
         disabled={busy}
-        className="w-full rounded-xl bg-orange-500 py-3 font-bold text-white active:scale-[0.98] disabled:opacity-50"
+        className="primary-button w-full py-3 font-bold active:scale-[0.98] disabled:opacity-50"
       >
         {busy ? '稍等…' : '进入厨房 🍳'}
       </button>
@@ -104,6 +105,7 @@ export default function Onboarding({ session, onDone }) {
       <button onClick={() => supabase.auth.signOut()} className="mt-4 text-center text-xs text-gray-400">
         退出登录
       </button>
+      </div>
     </div>
   )
 }

@@ -29,7 +29,7 @@ export default function App() {
   }
 
   return (
-    <div className="mx-auto h-full max-w-md bg-[#fff7f3]">
+    <div className="app-frame mx-auto h-full max-w-md">
       {session ? <Shell session={session} /> : <Auth />}
     </div>
   )
@@ -64,35 +64,39 @@ function Shell({ session }) {
   const shared = { ...cloud, me: cloud.profile, memberMap, cur, celebrate }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="app-shell flex h-full flex-col">
       {/* 顶栏 */}
-      <header className="safe-top sticky top-0 z-10 bg-[#fff7f3]/90 backdrop-blur">
-        <div className="flex items-center justify-between px-4 pb-2 pt-3">
-          <h1 className="text-lg font-bold text-orange-600">我们的厨房 🍳</h1>
-          <button onClick={() => setSettings(true)} className="flex items-center gap-1.5 rounded-full bg-orange-100 py-1 pl-1 pr-3 active:scale-95">
-            <Avatar profile={cloud.profile} size={24} />
-            <span className="text-sm font-medium text-orange-700">{cloud.profile?.display_name}</span>
+      <header className="app-header safe-top sticky top-0 z-10">
+        <div className="flex items-center justify-between gap-3 px-5 pb-3 pt-4">
+          <div>
+            <div className="app-eyebrow">OUR LITTLE KITCHEN</div>
+            <h1 className="app-title">我们的厨房<span aria-hidden="true"> ✳</span></h1>
+          </div>
+          <button onClick={() => setSettings(true)} className="profile-trigger" aria-label="打开我的资料">
+            <Avatar profile={cloud.profile} size={28} />
+            <span className="max-w-20 truncate text-sm font-semibold">{cloud.profile?.display_name}</span>
           </button>
         </div>
       </header>
 
       {/* 内容 */}
-      <main className="flex-1 overflow-y-auto px-4 pb-28">
+      <main className="app-content flex-1 overflow-y-auto px-5 pb-32">
         {tab === 'cook' && <Cook {...shared} />}
         {tab === 'wish' && <Wishes {...shared} />}
         {tab === 'ledger' && <Ledger {...shared} />}
       </main>
 
       {/* 底部 Tab */}
-      <nav className="safe-bottom fixed bottom-0 left-1/2 z-10 w-full max-w-md -translate-x-1/2 border-t border-orange-100 bg-white/95 backdrop-blur">
-        <div className="flex">
+      <nav className="tab-dock-wrap safe-bottom fixed bottom-0 left-1/2 z-10 w-full max-w-md -translate-x-1/2" aria-label="主导航">
+        <div className="tab-dock flex">
           {TABS.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex flex-1 flex-col items-center gap-0.5 py-2.5 text-xs transition ${tab === t.key ? 'text-orange-600' : 'text-gray-400'}`}
+              aria-current={tab === t.key ? 'page' : undefined}
+              className={`tab-item flex flex-1 flex-col items-center gap-0.5 text-xs transition ${tab === t.key ? 'is-active' : ''}`}
             >
-              <span className={`text-xl ${tab === t.key ? 'scale-110' : ''} transition`}>{t.icon}</span>
+              <span className="tab-emoji" aria-hidden="true">{t.icon}</span>
               {t.label}
             </button>
           ))}
@@ -101,7 +105,7 @@ function Shell({ session }) {
 
       {/* 仪式感提示 */}
       {toast && (
-        <div key={toast.id} className="animate-floatup pointer-events-none fixed bottom-32 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow-lg">
+        <div key={toast.id} className="glass-toast animate-floatup pointer-events-none fixed bottom-32 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap px-4 py-2 text-sm font-bold">
           {toast.text}
         </div>
       )}
