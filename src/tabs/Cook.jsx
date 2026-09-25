@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import Avatar from '../components/Avatar'
 
 const EMOJIS = ['🍅', '🥘', '🥬', '🍲', '🥦', '🍗', '🍤', '🍜', '🍚', '🥚', '🐟', '🍆', '🌶️', '🥩', '🍄', '🧄']
@@ -108,7 +109,7 @@ export default function Cook({ dishes, today, memberMap, api, cur, celebrate }) 
       </section>
 
       {/* 新增/编辑弹窗 */}
-      {form && (
+      {form && createPortal(
         <div className="sheet-backdrop fixed inset-0 z-30 flex items-end justify-center" onClick={() => setForm(null)}>
           <div className="glass-sheet animate-pop w-full max-w-md p-5 pb-8" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-4 text-center text-base font-bold text-gray-800">这道菜叫…</h3>
@@ -141,7 +142,8 @@ export default function Cook({ dishes, today, memberMap, api, cur, celebrate }) 
             </div>
             <button onClick={saveDish} className="primary-button w-full py-3 font-bold active:scale-[0.98]">保存</button>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   )

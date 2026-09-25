@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { MEAL_TYPES, mealType } from '../useCloud'
 import Avatar from '../components/Avatar'
 
@@ -145,7 +146,7 @@ export default function Wishes({ wishes, memberMap, api, cur, celebrate }) {
       </section>
 
       {/* 这次吃了多少钱 */}
-      {eating && (
+      {eating && createPortal(
         <div className="sheet-backdrop fixed inset-0 z-30 flex items-end justify-center" onClick={() => setEating(null)}>
           <div className="glass-sheet animate-pop w-full max-w-md p-5 pb-8" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-center text-base font-bold text-gray-800">
@@ -166,11 +167,12 @@ export default function Wishes({ wishes, memberMap, api, cur, celebrate }) {
               记入吃过
             </button>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
       {/* 添加/编辑弹窗 */}
-      {form && (
+      {form && createPortal(
         <div className="sheet-backdrop fixed inset-0 z-30 flex items-end justify-center" onClick={() => setForm(null)}>
           <div className="glass-sheet animate-pop w-full max-w-md p-5 pb-8" onClick={(e) => e.stopPropagation()}>
             <h3 className="mb-4 text-center text-base font-bold text-gray-800">
@@ -219,7 +221,8 @@ export default function Wishes({ wishes, memberMap, api, cur, celebrate }) {
               {form.kind === 'eaten' ? '记入吃过' : '保存'}
             </button>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   )
