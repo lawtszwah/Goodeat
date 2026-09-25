@@ -1,31 +1,46 @@
-# 我们的厨房 🍳
+# 我们的厨房
 
 两个人的小厨房：**在家点菜 · 想吃清单 · 吃饭记账**。
 
 一个面向手机的 PWA，两个人用邀请码加入同一个「小家」，数据实时同步——你在这边点了一道菜，对方手机上马上就能看到。
 
+[打开线上 App](https://home-order-lovat.vercel.app/)
+
+## 界面预览
+
+以下截图使用演示数据，展示点菜页面的浅色与深色外观，以及右上角头像中的外观设置。
+
+| 浅色点菜 | 深色点菜 | 外观设置 |
+| :---: | :---: | :---: |
+| <img src="docs/images/order-light.png" alt="浅色模式的家常菜页面，包含菜名搜索和菜品卡片" width="260"> | <img src="docs/images/order-dark.png" alt="深色模式的家常菜页面" width="260"> | <img src="docs/images/appearance-dark.png" alt="个人资料中的跟随系统、浅色和深色选项" width="260"> |
+
 ## 功能
 
 ### 🍳 点菜
-- **家常菜库**：自己维护会做的菜，每道菜可选 emoji、填参考成本
+
+- **家常菜**：按菜名实时搜索；可添加、编辑和管理菜品，设置 emoji 或上传照片，并填写参考成本
 - **今日菜单**：点一下菜就加入今日菜单，显示是谁点的；做好一道可以打勾
 - **这顿吃完啦**：一键把今日菜单记成一笔「在家做」的账，并清空菜单
 
 ### 💭 想吃
+
 - **想吃清单**：记下想吃的外卖 / 想去的店，可填店名、理由、大概花费
 - **🎲 今天吃啥**：从清单里随机挑一个，治好选择困难
 - **吃了一次**：填上这次实际花了多少，自动记入「吃过」和账本，清单里的这条保留，下次还能再吃
 - **吃过**：历史记录，可以打 1–5 星，点「想再吃」放回清单
 
 ### 💰 记账
+
 - 本月吃饭总花费，按 **在家做 / 点外卖 / 出去吃** 分类汇总
 - 按日期分组的明细，每笔显示是谁记的
 
 ### 其他
+
 - 邮箱注册 / 登录
 - 创建小家生成邀请码，对方输入邀请码加入
 - 个人资料：名字、头像上传
 - 货币切换：AUD / USD / CNY / EUR（保存在本机）
+- 外观模式：默认跟随手机系统，也可在「我的资料 → 外观」手动选择浅色或深色；手动选择保存在本机
 - 支持「添加到主屏幕」，像 App 一样全屏使用
 
 ## 技术栈
@@ -67,9 +82,9 @@ Supabase 的连接信息在 [`src/supabase.js`](src/supabase.js)。这里用的�
 | --- | --- | --- |
 | `households` | 小家 | `id`, `invite_code` |
 | `profiles` | 成员资料 | `id`（= auth 用户 id）, `household_id`, `display_name`, `avatar_url` |
-| `dishes` | 家常菜库 | `name`, `emoji`, `category`, `cost`, `created_by` |
+| `dishes` | 家常菜 | `name`, `emoji`, `image_url`, `category`, `cost`, `created_by` |
 | `today_items` | 今日菜单 | `dish_id`, `ordered_by`, `done` |
-| `wishes` | 想吃 / 吃过 | `name`, `shop`, `type`, `reason`, `price`, `rating`, `eaten`, `created_by` |
+| `wishes` | 想吃 / 吃过 | `name`, `shop`, `type`, `reason`, `price`, `image_url`, `rating`, `eaten`, `created_by` |
 | `ledger` | 账本 | `date`, `type`, `title`, `amount`, `created_by` |
 
 `type` 取值：`home`（在家做）、`takeout`（点外卖）、`dineout`（出去吃）。
@@ -79,7 +94,7 @@ Supabase 的连接信息在 [`src/supabase.js`](src/supabase.js)。这里用的�
 - `join_home(p_code, p_display_name, p_avatar)`：用邀请码加入已有小家
 
 **其他**
-- Storage 建一个公开的 `avatars` bucket，用来存头像
+- Storage 建公开的 `avatars` 和 `food-photos` bucket，分别存头像与菜品 / 美食照片
 - 对上面几张表开启 Realtime，实时同步才会生效
 - RLS 策略：用户只能读写自己所在 `household_id` 的数据
 
@@ -90,11 +105,14 @@ src/
 ├── App.jsx            # 登录态判断、顶栏、底部 Tab
 ├── Auth.jsx           # 登录 / 注册
 ├── Onboarding.jsx     # 首次进入：建档案、创建或加入小家
-├── ProfileSheet.jsx   # 我的资料、邀请码、货币
+├── ProfileSheet.jsx   # 我的资料、邀请码、货币、外观
+├── useTheme.js        # 系统外观监听与本机偏好
 ├── useCloud.js        # 数据层：加载、实时订阅、增删改
 ├── supabase.js        # Supabase 客户端
 ├── components/
-│   └── Avatar.jsx
+│   ├── Avatar.jsx
+│   ├── FoodImage.jsx
+│   └── FoodPhoto.jsx
 └── tabs/
     ├── Cook.jsx       # 点菜
     ├── Wishes.jsx     # 想吃
@@ -102,4 +120,5 @@ src/
 public/
 ├── icon.svg
 └── manifest.webmanifest
+docs/images/             # README 演示截图
 ```
