@@ -15,9 +15,15 @@ export default function Wishes({ wishes, memberMap, api, cur, celebrate, hid, me
   const [picked, setPicked] = useState(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [eatenSearchOpen, setEatenSearchOpen] = useState(false)
+  const [eatenSearch, setEatenSearch] = useState('')
 
   const todo = wishes.filter((w) => !w.eaten)
   const eaten = wishes.filter((w) => w.eaten)
+  const eatenKeyword = eatenSearch.trim().toLocaleLowerCase()
+  const visibleEaten = eatenKeyword
+    ? eaten.filter((w) => [w.name, w.shop].some((value) => value?.toLocaleLowerCase().includes(eatenKeyword)))
+    : eaten
 
   const roll = () => {
     if (todo.length === 0) return
@@ -119,15 +125,54 @@ export default function Wishes({ wishes, memberMap, api, cur, celebrate, hid, me
       <section className="mt-7">
         <div className="mb-3 flex items-center justify-between">
           <div><div className="section-eyebrow">FOOD DIARY</div><h2 className="section-title">吃过 · {eaten.length}</h2></div>
-          <button onClick={() => setForm(blankEaten())} className="text-sm font-semibold accent-text">＋ 直接记一笔</button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setEatenSearchOpen((open) => {
+                  if (open) setEatenSearch('')
+                  return !open
+                })
+              }}
+              className="eaten-search-trigger"
+              aria-label={eatenSearchOpen ? '关闭吃过搜索' : '搜索吃过'}
+              aria-expanded={eatenSearchOpen}
+              aria-controls="eaten-search"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-4-4" />
+              </svg>
+            </button>
+            <button onClick={() => setForm(blankEaten())} className="text-sm font-semibold accent-text">＋ 直接记一笔</button>
+          </div>
         </div>
+        {eatenSearchOpen && (
+          <div id="eaten-search" className="dish-search mb-3">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-4-4" />
+            </svg>
+            <input
+              autoFocus
+              type="search"
+              aria-label="搜索吃过"
+              placeholder="搜索吃过的菜或餐厅"
+              value={eatenSearch}
+              onChange={(e) => setEatenSearch(e.target.value)}
+            />
+            {eatenSearch && <button type="button" onClick={() => setEatenSearch('')} aria-label="清空搜索">✕</button>}
+          </div>
+        )}
         {eaten.length === 0 ? (
           <div className="glass-card py-8 text-center text-sm text-gray-500">
             还没有吃过的记录～<br />清单里点「吃了一次」，或这里「直接记一笔」
           </div>
+        ) : visibleEaten.length === 0 ? (
+          <p className="dish-search-empty" role="status">没有找到相关记录</p>
         ) : (
           <ul className="space-y-2">
-            {eaten.map((w) => {
+            {visibleEaten.map((w) => {
               const t = mealType(w.type)
               return (
                 <li key={w.id} className="glass-card px-4 py-3">

@@ -121,6 +121,7 @@ export function useCloud(session) {
     },
 
     // 账本
+    addLedger: (entry) => after(supabase.from('ledger').insert({ household_id: hid, created_by: userId, ...entry })),
     delLedger: (id) => after(supabase.from('ledger').delete().eq('id', id)),
 
     // 个人资料

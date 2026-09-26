@@ -54,7 +54,10 @@ export function KitchenShell({ session, cloud, themePreference, setThemePreferen
   const trackRef = useRef(null)
   const indicatorRef = useRef(null)
   const gestureRef = useRef(null)
+  const dockGestureRef = useRef(null)
   const suppressClickUntilRef = useRef(0)
+  const suppressDockClickUntilRef = useRef(0)
+  const [previewIndex, setPreviewIndex] = useState(null)
   const [toast, setToast] = useState(null)
   const [settings, setSettings] = useState(false)
   const [currency, setCurrencyState] = useState(getCurrency())
@@ -77,11 +80,26 @@ export function KitchenShell({ session, cloud, themePreference, setThemePreferen
     if (node) node.style.transform = `translate3d(calc(${tabIndexRef.current * 100}% + ${tabIndexRef.current * 3}px), 0, 0)`
   }, [])
 
+  const moveWithDrag = (progress, velocity = 0) => {
+    if (trackRef.current) trackRef.current.style.transform = `translate3d(${-progress * 100}%, 0, 0)`
+    if (indicatorRef.current) {
+      indicatorRef.current.style.transform = `translate3d(calc(${progress * 100}% + ${progress * 3}px), 0, 0)`
+      indicatorRef.current.style.setProperty('--liquid-stretch', Math.min(Math.abs(velocity) * 0.12, 0.16))
+      indicatorRef.current.style.setProperty('--liquid-glint', `${Math.max(20, Math.min(80, 50 + velocity * 30))}%`)
+    }
+    setPreviewIndex(Math.round(progress))
+  }
+
   const selectTab = (index) => {
     if (index < 0 || index >= TABS.length) return
     tabIndexRef.current = index
     if (trackRef.current) trackRef.current.style.transform = `translate3d(${-index * 100}%, 0, 0)`
-    if (indicatorRef.current) indicatorRef.current.style.transform = `translate3d(calc(${index * 100}% + ${index * 3}px), 0, 0)`
+    if (indicatorRef.current) {
+      indicatorRef.current.style.transform = `translate3d(calc(${index * 100}% + ${index * 3}px), 0, 0)`
+      indicatorRef.current.style.setProperty('--liquid-stretch', 0)
+      indicatorRef.current.style.setProperty('--liquid-glint', '50%')
+    }
+    setPreviewIndex(null)
     setTab(TABS[index].key)
   }
 
@@ -112,15 +130,13 @@ export function KitchenShell({ session, cloud, themePreference, setThemePreferen
     const width = event.currentTarget.clientWidth || 1
     const edgeDrag = (index === 0 && dx > 0) || (index === TABS.length - 1 && dx < 0)
     const visualDx = Math.max(-width, Math.min(width, dx * (edgeDrag ? 0.28 : 1)))
-    const indicatorStep = (indicatorRef.current?.getBoundingClientRect().width || 0) + 3
     const now = performance.now()
     const elapsed = now - gesture.lastAt
     if (elapsed > 0) gesture.velocity = (touch.clientX - gesture.lastX) / elapsed
     gesture.lastX = touch.clientX
     gesture.lastAt = now
     gesture.dx = dx
-    if (trackRef.current) trackRef.current.style.transform = `translate3d(calc(${-index * 100}% + ${visualDx}px), 0, 0)`
-    if (indicatorRef.current) indicatorRef.current.style.transform = `translate3d(calc(${index * 100}% + ${index * 3}px + ${(-visualDx / width) * indicatorStep}px), 0, 0)`
+    moveWithDrag(Math.max(0, Math.min(TABS.length - 1, index - visualDx / width)), gesture.velocity)
   }
 
   const finishTouch = (cancelled = false) => {
@@ -138,6 +154,58 @@ export function KitchenShell({ session, cloud, themePreference, setThemePreferen
     indicatorRef.current?.classList.remove('is-dragging')
     suppressClickUntilRef.current = performance.now() + 180
     selectTab(next)
+  }
+
+  const onDockPointerDown = (event) => {
+    if (event.button !== 0 || !event.target.closest('.tab-item')) return
+    dockGestureRef.current = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      index: tabIndexRef.current,
+      progress: tabIndexRef.current,
+      lastX: event.clientX,
+      lastAt: performance.now(),
+      velocity: 0,
+      dragging: false,
+    }
+  }
+
+  const onDockPointerMove = (event) => {
+    const gesture = dockGestureRef.current
+    if (!gesture || gesture.pointerId !== event.pointerId) return
+    const dx = event.clientX - gesture.x
+    const dy = event.clientY - gesture.y
+    if (!gesture.dragging) {
+      if (Math.abs(dx) < 7 || Math.abs(dx) < Math.abs(dy) * 1.1) return
+      gesture.dragging = true
+      event.currentTarget.setPointerCapture(event.pointerId)
+      trackRef.current?.classList.add('is-dragging')
+      indicatorRef.current?.classList.add('is-dragging')
+      event.currentTarget.classList.add('is-dragging')
+    }
+    const step = (indicatorRef.current?.offsetWidth || 1) + 3
+    const now = performance.now()
+    const elapsed = now - gesture.lastAt
+    if (elapsed > 0) gesture.velocity = (event.clientX - gesture.lastX) / elapsed
+    gesture.lastX = event.clientX
+    gesture.lastAt = now
+    gesture.progress = Math.max(0, Math.min(TABS.length - 1, gesture.index + dx / step))
+    moveWithDrag(gesture.progress, gesture.velocity)
+  }
+
+  const finishDockPointer = (event, cancelled = false) => {
+    const gesture = dockGestureRef.current
+    if (!gesture || gesture.pointerId !== event.pointerId) return
+    dockGestureRef.current = null
+    if (!gesture.dragging) return
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
+    if (trackRef.current) void trackRef.current.offsetWidth
+    trackRef.current?.classList.remove('is-dragging')
+    indicatorRef.current?.classList.remove('is-dragging')
+    event.currentTarget.classList.remove('is-dragging')
+    suppressDockClickUntilRef.current = performance.now() + 180
+    selectTab(cancelled ? gesture.index : Math.round(gesture.progress))
   }
 
   // 成员 map，方便按 id 取头像/名字
@@ -191,14 +259,26 @@ export function KitchenShell({ session, cloud, themePreference, setThemePreferen
 
       {/* 底部 Tab */}
       <nav className="tab-dock-wrap safe-bottom fixed bottom-0 left-1/2 z-10 w-full max-w-md -translate-x-1/2" aria-label="主导航">
-        <div className="tab-dock flex">
+        <div
+          className="tab-dock flex"
+          onPointerDown={onDockPointerDown}
+          onPointerMove={onDockPointerMove}
+          onPointerUp={(event) => finishDockPointer(event)}
+          onPointerCancel={(event) => finishDockPointer(event, true)}
+          onClickCapture={(event) => {
+            if (performance.now() < suppressDockClickUntilRef.current) {
+              event.preventDefault()
+              event.stopPropagation()
+            }
+          }}
+        >
           <span ref={indicatorNode} className="tab-indicator" aria-hidden="true" />
           {TABS.map((t, index) => (
             <button
               key={t.key}
               onClick={() => selectTab(index)}
               aria-current={tab === t.key ? 'page' : undefined}
-              className={`tab-item flex flex-1 flex-col items-center gap-0.5 text-xs transition ${tab === t.key ? 'is-active' : ''}`}
+              className={`tab-item flex flex-1 flex-col items-center gap-0.5 text-xs transition ${(previewIndex ?? tabIndexRef.current) === index ? 'is-active' : ''}`}
             >
               <span className="tab-emoji" aria-hidden="true">{t.icon}</span>
               {t.label}
